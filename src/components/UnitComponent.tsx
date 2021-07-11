@@ -1,29 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import type { MouseEvent } from 'react';
 import Coordinates from '../types/Coordinates';
+import { getTileRect } from '../utils/geometry';
 import styles from './UnitComponent.module.css';
 import Unit from '../types/Unit';
 
 type Props = {
   unit: Unit,
-  cameraCoordinates: Coordinates
+  cameraCoordinates: Coordinates,
+  isSelected: boolean
 };
 
-const UnitComponent = ({ unit: { color, coordinates }, cameraCoordinates }: Props) => {
-  const [style, setStyle] = useState({});
+const handleRightClick = (e: MouseEvent) => { console.log(e); return true; };
 
-  useEffect(
-    () => setStyle({
-      left: 32 * (coordinates.x - cameraCoordinates.x),
-      top: 32 * (coordinates.y - cameraCoordinates.y),
-      backgroundColor: color
-    }),
-    [color, coordinates, cameraCoordinates]
-  );
+const UnitComponent = ({ unit, cameraCoordinates, isSelected }: Props) => {
+  const tileRect = getTileRect(unit.coordinates, cameraCoordinates);
+  const style = {
+    left: tileRect.left,
+    top: tileRect.top,
+    backgroundColor: unit.color
+  };
+
+  const { x, y } = unit.coordinates;
+  const className = [styles.unit, [...isSelected ? [styles.selected] : []]].join(' ');
   return (
     <div
-      className={styles.unit}
+      className={className}
       style={style}
-      key={`unit_${coordinates.x}_${coordinates.y}}`}
+      key={`unit_${x}_${y}}`}
+      onContextMenu={handleRightClick}
     />
   );
 }

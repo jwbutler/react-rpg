@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import Coordinates from '../types/Coordinates';
 import Tile from '../types/Tile';
 import TileComponent from './TileComponent';
