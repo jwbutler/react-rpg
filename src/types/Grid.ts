@@ -1,5 +1,5 @@
 import Tile from './Tile';
 
-type Grid = Tile[][];
+type Grid = readonly Tile[][];
 
 export default Grid;

@@ -7,13 +7,14 @@ import Unit from '../types/Unit';
 
 type Props = {
   unit: Unit,
-  cameraCoordinates: Coordinates,
-  isSelected: boolean
+  cameraCoordinates: Coordinates
 };
 
-const handleRightClick = (e: MouseEvent) => { console.log(e); return true; };
+const handleRightClick = (e: MouseEvent) => {
+  // TODO
+};
 
-const UnitComponent = ({ unit, cameraCoordinates, isSelected }: Props) => {
+const UnitComponent = ({ unit, cameraCoordinates }: Props) => {
   const tileRect = getTileRect(unit.coordinates, cameraCoordinates);
   const style = {
     left: tileRect.left,
@@ -22,7 +23,7 @@ const UnitComponent = ({ unit, cameraCoordinates, isSelected }: Props) => {
   };
 
   const { x, y } = unit.coordinates;
-  const className = [styles.unit, [...isSelected ? [styles.selected] : []]].join(' ');
+  const className = [styles.unit, [...unit.isSelected ? [styles.selected] : []]].join(' ');
   return (
     <div
       className={className}

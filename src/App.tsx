@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import type { MouseEvent } from 'react';
 import styles from './App.module.css';
 import Renderer from './Renderer';
-import GameState from './types/GameState';
+import Coordinates from './types/Coordinates';
 import Pixel from './types/Pixel';
 import Rect from './types/Rect';
 import Tile from './types/Tile';
 import Unit from './types/Unit';
-import { getTileRect } from './utils/geometry';
+import { getTileRect, pixelToCoordinates } from './utils/geometry';
 import { Button, isButtonDown } from './utils/input';
 
 const initializeTiles = (width: number, height: number): Tile[][] => {
@@ -23,34 +23,36 @@ const initializeTiles = (width: number, height: number): Tile[][] => {
 }
 
 const initializeUnits = (): Unit[] => {
-  const playerUnit: Unit = {
-    color: '#FFFFFF',
+  const playerUnit = new Unit({
     coordinates: { x: 5, y: 5 },
+    color: '#FFFFFF',
     controller: 'PLAYER'
-  };
+  });
 
   return [playerUnit];
 }
 
-const getInitialState = (): GameState => ({
-  tiles: initializeTiles(20, 20),
-  units: initializeUnits(),
-  cameraCoordinates: { x: 0, y: 0 }
-});
-
 const App = () => {
-  const [state, setState] = useState<GameState>(getInitialState());
+  const [tiles, setTiles] = useState<Tile[][]>(initializeTiles(20, 20));
+  const [units, setUnits] = useState<Unit[]>(initializeUnits());
+  const [cameraCoordinates, setCameraCoordinates] = useState<Coordinates>(Coordinates.ZERO);
   const [selectionStartPoint, setSelectionStartPoint] = useState<Pixel | null>(null);
   const [selectionEndPoint, setSelectionEndPoint] = useState<Pixel | null>(null);
   const [selectionStartTime, setSelectionStartTime] = useState<number | null>(null);
-  const [selectedUnits, setSelectedUnits] = useState<Unit[]>([]);
-  const { tiles, units, cameraCoordinates } = state;
 
   const selectionRect: Rect | null = (selectionStartPoint != null)
     ? Rect.fromPoints(selectionStartPoint, selectionEndPoint || selectionStartPoint)
     : null;
 
   const onTick = (ticks: number) => {
+    // WTF typescript?
+    setUnits(units => units.map(unit =>
+      ({
+        ...unit,
+        coordinates: unit.targetCoordinates || unit.coordinates,
+        targetCoordinates: null
+      })
+    ));
     //console.log(ticks);
   };
 
@@ -74,13 +76,21 @@ const App = () => {
 
   const handleMouseUp = (e: MouseEvent): boolean => {
     if (selectionRect) {
-      setSelectedUnits(units.filter(unit => {
+      setUnits(units.map(unit => {
         const boundingRect = getTileRect(unit.coordinates, cameraCoordinates);
+        let isSelected: boolean;
         if (new Date().getTime() - (selectionStartTime || 0) <= 100) {
-          return Rect.containsRect(boundingRect, selectionRect);
+          isSelected = Rect.containsRect(boundingRect, selectionRect);
         } else {
-          return Rect.containsRect(selectionRect, boundingRect);
+          isSelected = Rect.containsRect(selectionRect, boundingRect);
         }
+
+        const updatedUnit: Unit = {
+          ...unit,
+          isSelected
+        };
+
+        return updatedUnit;
       }));
       setSelectionStartPoint(null);
       setSelectionEndPoint(null);
@@ -90,6 +100,17 @@ const App = () => {
   }
 
   const handleRightClick = (e: MouseEvent): boolean => {
+    const pixel = Pixel.fromMouseEvent(e);
+    const coordinates = pixelToCoordinates(pixel, cameraCoordinates);
+    const updatedUnits: Unit[] = [];
+    for (const unit of units) {
+      if (unit.isSelected) {
+        updatedUnits.push({ ...unit, targetCoordinates: coordinates });
+      } else {
+        updatedUnits.push(unit);
+      }
+    }
+    setUnits(updatedUnits);
     e.preventDefault();
     return true;
   }
@@ -119,7 +140,6 @@ const App = () => {
         tiles={tiles}
         units={units}
         cameraCoordinates={cameraCoordinates}
-        selectedUnits={selectedUnits}
         selectionRect={selectionRect}
       />
     </div>

@@ -1,4 +1,5 @@
 import Coordinates from '../types/Coordinates';
+import Pixel from '../types/Pixel';
 import Rect from '../types/Rect';
 
 const getTileRect = (coordinates: Coordinates, cameraCoordinates: Coordinates): Rect => ({
@@ -8,4 +9,9 @@ const getTileRect = (coordinates: Coordinates, cameraCoordinates: Coordinates): 
   height: 32
 });
 
-export { getTileRect };
+const pixelToCoordinates = (pixel: Pixel, cameraCoordinates: Coordinates): Coordinates => ({
+  x: Math.floor(pixel.x / 32 + cameraCoordinates.x),
+  y: Math.floor(pixel.y / 32 + cameraCoordinates.y)
+});
+
+export { getTileRect, pixelToCoordinates };

@@ -1,8 +1,8 @@
 import type { MouseEvent } from 'react';
 
 type Pixel = {
-  x: number,
-  y: number
+  readonly x: number,
+  readonly y: number
 };
 
 namespace Pixel {

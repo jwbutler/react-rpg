@@ -1,5 +1,5 @@
 type Tile = {
-  color: string
+  readonly color: string
 };
 
 export default Tile;
